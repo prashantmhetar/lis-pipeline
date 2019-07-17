@@ -180,6 +180,7 @@ def GetMajorVersion(InVersion) {
 
 def CaptureImageWithCustomErrata(distro, errata) {
 	println "Capture Image for distro ${distro} and errata ${errata}"
+	git branch: 'capture_vhd_fix', url: 'https://github.com/iamshital/lisav2-2'
 	withCredentials([file(credentialsId: 'Azure_Secrets_TESTONLY_File', variable: 'Azure_Secrets_TESTONLY_File')]) {
 		def currentVHD = "${distro}"
 		Prepare()
@@ -213,6 +214,7 @@ def CaptureImageWithCustomErrata(distro, errata) {
 
 def CaptureImageWithCustomLIS(distro, errata, rpmURL) {
 	println "Capture Image for distro ${distro}, errata ${errata} lis ${rpmURL}"
+	git branch: 'capture_vhd_fix', url: 'https://github.com/iamshital/lisav2-2'
 	withCredentials([file(credentialsId: 'Azure_Secrets_TESTONLY_File', variable: 'Azure_Secrets_TESTONLY_File')]) {
 		def currentVHD = "${distro}"
 		Prepare()
@@ -607,6 +609,7 @@ node ("jenkins-meta-slave") {
 			}
 			try {
 				node ("azure") {
+					git branch: 'storage_cleanup', url: 'https://github.com/iamshital/lisav2-2'
 					def VHD_NAMES = ""
 					for (i=0; i < total_hotfix_errata; i++) {
 						println "Stage to cleanup the test VHD"
