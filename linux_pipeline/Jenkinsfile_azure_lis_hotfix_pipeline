@@ -262,9 +262,6 @@ node ("jenkins-meta-slave") {
 				echo -n "\$LIS_BUILD_VM_PASSWORD" > LIS_BUILD_VM_PASSWORD.tmp
 				""" )
 			}
-			//def storageblob = readFile 'LIS_HOTFIX_STORAGE_ACCOUNT.tmp'
-			//storageblob = storageblob.replaceAll("\r", "").replaceAll("\n", "");
-			//env.STORAGE_ACCOUNT_NAME = storageblob
 			env.STORAGE_ACCOUNT_NAME = readFile 'LIS_HOTFIX_STORAGE_ACCOUNT.tmp'
 			env.LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT = readFile 'LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT.tmp'
 			env.LIS_BUILD_VM_USERNAME = readFile 'LIS_BUILD_VM_USERNAME.tmp'
@@ -350,14 +347,14 @@ node ("jenkins-meta-slave") {
 						println "pipeline-lis-rpm-build-azure is invoked .. "
 						JobBuildRPM = build job: 'LIS/pipeline-lis-rpm-build-azure', parameters: [
 						string(name: 'distro', value: "all"),
-						string(name: 'build_rpm_source', value: "https://github.com/iamshital/lis-rpm-build-pipeline.git"),
-						string(name: 'build_rpm_source_branch', value: "lis-hotfix-demo"),
+                                                string(name: 'build_rpm_source', value: "https://github.com/iamshital/lis-rpm-build-pipeline.git"),
+                                                string(name: 'build_rpm_source_branch', value: "lis-hotfix-demo"),						
 						string(name: 'buildname', value: "${hotfixlisVersion}"),
 						string(name: 'source', value: "https://github.com/LIS/lis-next"),
 						string(name: 'branch', value: "${branchName}"),
 						string(name: 'RESOURCE_GROUP_NAME', value: "ss-lis-build-4")
 						],
-						quietPeriod: 10, wait: true, propagate: false
+						quietPeriod: 10, wait: true, propagate: true
 
 						try {
 							copyArtifacts(projectName: 'LIS/pipeline-lis-rpm-build-azure', selector: specific("${JobBuildRPM.id}"));
@@ -369,31 +366,35 @@ node ("jenkins-meta-slave") {
 						} catch (exc) {
 							println "Failed to unstash Build RPM files"
 						}
+
+						def body = ""
+						if (CUSTOM_LIS == null) {
+							body += 'Notification: RPM Build is failed for ${TARGET_LIST} \n'
+						} else {
+							body += 'Notification: Build is successful and RPM is created for ${TARGET_LIST} \n'
+						}
+
+						//Notify the Build RPM status
+						withCredentials([string(credentialsId: 'HOTFIX_DEV_MAIL', variable: 'HOTFIX_DEV_MAIL')]) {
+						emailext (
+							subject: "LIS-Hotfix-Pipeline: Notification",
+							to: "${env.HOTFIX_DEV_MAIL}",
+							mimeType : "text/html",
+							body: body
+							)
+						}
+
 					}
 				}catch (exc) {
 					currentBuild.result = 'FAILURE'
 					println exc
 					ReportException("${currentStage}", "${exc}")
+					throw new Exception("BUILD RPM stage failed..exiting.")
+
 				} finally {
 					cleanWs()
 				}
 
-				def body = ""
-				if (CUSTOM_LIS == null) {
-					body += 'Notification: RPM Build is failed for ${TARGET_LIST} \n'
-				} else {
-					body += 'Notification: Build is successful and RPM is created for ${TARGET_LIST} \n'
-				}
-
-				//Notify the Build RPM status
-				withCredentials([string(credentialsId: 'HOTFIX_DEV_MAIL', variable: 'HOTFIX_DEV_MAIL')]) {
-				emailext (
-					subject: "LIS-Hotfix-Pipeline: Notification",
-					to: "${env.HOTFIX_DEV_MAIL}",
-					mimeType : "text/html",
-					body: body
-					)
-				}
 			}
 		}
 
