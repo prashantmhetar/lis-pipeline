@@ -350,8 +350,8 @@ node ("jenkins-meta-slave") {
 						println "pipeline-lis-rpm-build-azure is invoked .. "
 						JobBuildRPM = build job: 'LIS/pipeline-lis-rpm-build-azure', parameters: [
 						string(name: 'distro', value: "all"),
-						string(name: 'build_rpm_source', value: "https://github.com/lis/lis-rpm-build-pipeline.git"),
-						string(name: 'build_rpm_source_branch', value: "master"),
+						string(name: 'build_rpm_source', value: "https://github.com/iamshital/lis-rpm-build-pipeline.git"),
+						string(name: 'build_rpm_source_branch', value: "lis-hotfix-demo"),
 						string(name: 'buildname', value: "${hotfixlisVersion}"),
 						string(name: 'source', value: "https://github.com/LIS/lis-next"),
 						string(name: 'branch', value: "${branchName}"),
