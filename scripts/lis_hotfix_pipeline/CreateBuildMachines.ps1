@@ -62,7 +62,7 @@ try {
             $BaseVHD = $matchedDistrosURL | Where-Object { $_ -inotmatch "update"  }
             $DestVHD = $BaseVHD.Replace(".vhd","_update$($matchedDistros.count).vhd")
             Write-LogInfo "$BaseVHD-->$DestVHD"
-            $VHDCopyOperations += Start-VHDCopy -context $context -source $BaseVHD.Split("/")[-1] -destination $DestVHD.Split("/")[-1]
+            $VHDCopyOperations += Start-VHDCopy -context $context -source $BaseVHD.Split("/")[-1] -destination $DestVHD.Split("/")[-1] -Container $SourceContainer
         }
     }
 
@@ -71,8 +71,7 @@ try {
     }
 
     # Poll and wait till VHD copy.
-    Test-VHDCopyOperations -VHDCopyOperations $VHDCopyOperations -context $context
-
+    Test-VHDCopyOperations -VHDCopyOperations $VHDCopyOperations -context $context -Container $SourceContainer
     # Create a new VM for each copied VHD.
     $CreatedVMs = @()
     foreach ($operation in $VHDCopyOperations) {

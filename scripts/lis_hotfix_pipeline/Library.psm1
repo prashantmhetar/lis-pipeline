@@ -168,18 +168,18 @@ Function Install-KernelPackages ( $PublicIP, $SSHPort, $LinuxUsername, $LinuxPas
     }
 }
 
-Function Start-VHDCopy ($context, $source,$destination ) {
+Function Start-VHDCopy ($context, $source,$destination, $Container ) {
     $expireTime = Get-Date
     $expireTime = $expireTime.AddYears(1)
-    $SasUrl = New-AzureStorageBlobSASToken -container "vhds" -Blob $source -Permission R -ExpiryTime $expireTime -FullUri -Context $Context
+    $SasUrl = New-AzureStorageBlobSASToken -container $Container -Blob $source -Permission R -ExpiryTime $expireTime -FullUri -Context $Context
     Write-LogInfo $SasUrl
-    $Status = Start-AzureStorageBlobCopy -AbsoluteUri $SasUrl  -DestContainer "vhds" -DestContext $Context -DestBlob $destination -Force
+    $Status = Start-AzureStorageBlobCopy -AbsoluteUri $SasUrl  -DestContainer $Container -DestContext $Context -DestBlob $destination -Force
     return $Status
 }
 
 
 
-Function Test-VHDCopyOperations($VHDCopyOperations, $context) {
+Function Test-VHDCopyOperations($VHDCopyOperations, $context, $Container) {
     $CopyingInProgress = $true
     while($CopyingInProgress)
     {
@@ -187,7 +187,7 @@ Function Test-VHDCopyOperations($VHDCopyOperations, $context) {
         $newVHDCopyOperations = @()
         foreach ($operation in $VHDCopyOperations)
         {
-            $status = Get-AzureStorageBlobCopyState -Container 'vhds' -Blob $operation.Name -Context $context
+            $status = Get-AzureStorageBlobCopyState -Container $Container -Blob $operation.Name -Context $context
             if ($status.Status -eq "Success")
             {
                 Write-LogInfo "$($operation.Name): $($context.StorageAccountName) : Done : 100 %"
