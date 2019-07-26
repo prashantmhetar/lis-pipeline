@@ -1,10 +1,4 @@
 #!/usr/bin/env groovy
-def FunctionalTests = """
-NVIDIA-CUDA-DRIVER-VALIDATION-MAX-GPU,NVIDIA-GRID-DRIVER-VALIDATION-MAX-GPU,INFINIBAND-OPEN-MPI-2VM,NVME-MAX-DISK-VALIDATION,SRIOV-VERIFY-SINGLE-VF-CONNECTION-MAX-VCPU,
-SRIOV-VERIFY-MAX-VF-CONNECTION-MAX-VCPU,SRIOV-RELOAD-MODULE,STORAGE-HOT-ADD-DISK-SERIAL,STORAGE-HOT-ADD-DISK-PARALLEL,VMBUS_VERIFY_INTERRUPTS,LIS-PREINSTALL-DISK-SIZE-VERIFICATION,
-VERIFY-DPDK-BUILD-AND-TESTPMD-TEST,INFINIBAND-INTEL-MPI-2VM"""
-def DeployTests = "LIS-DRIVER-VERSION-CHECK,LIS-DEPLOY-SCENARIO-1,LIS-DEPLOY-SCENARIO-2,LIS-DEPLOY-SCENARIO-3,LIS-DEPLOY-SCENARIO-4,LIS-DEPLOY-SCENARIO-5,LIS-DEPLOY-SCENARIO-6,LIS-DEPLOY-SCENARIO-7,LIS-DEPLOY-SCENARIO-8"
-
 def RunPowershellCommand(psCmd) {
     bat "powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$psCmd;EXIT \$global:LastExitCode\""
 }
@@ -115,7 +109,7 @@ stage ("${currentStage}") {
                 Command += " -TestIterations 1"
                 Command += " -ExitWithZero"
                 Command += " -EnableTelemetry"
-                Command += " -ExcludeTests '${DeployTests}'"
+                Command += " -ExcludeTests '${DEPLOY_TESTS}'"
                 Command += " -OsVHD '${currentVHD}'"
                 println Command
                 RunPowershellCommand(Command)
@@ -127,7 +121,7 @@ stage ("${currentStage}") {
                 Command += " -TestLocation '${TEST_LOCATION}'"
                 Command += " -RGIdentifier 'RPMTEST${BUILD_ID}'"
                 Command += " -TestCategory 'Functional'"
-                def SelectedTests = FunctionalTests.replaceAll("[\n\r]", "");
+                def SelectedTests = FUNCTIONAL_P1_TESTS.replaceAll("[\n\r]", "");
                 Command += " -TestNames '${SelectedTests}'"
                 Command += " -StorageAccount 'ExistingStorage_Standard'"
                 Command += " -CustomTestParameters 'LIS_OLD_URL=${LISoldurl};LIS_CURRENT_URL=${rpmURL}'"
