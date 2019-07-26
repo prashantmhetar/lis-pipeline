@@ -83,29 +83,10 @@ def GetErrataKernelLink(kernelVersion) {
 
 def CheckerrataLink(errataLink) {
     def status = sh (returnStatus: true, script: """
-        wget -q ${errataLink}
+        wget ${errataLink}
         """ )
     if ( status != 0) {
         throw new Exception("${errataLink} is unreachable.")
-    }
-}
-
-def DownloadStashKernelPackages(storage, sasKey, kernelVersion)
-{
-    node('jenkins-meta-slave') {
-        sourceDir = "https://${storage}.blob.core.windows.net/kernel/${kernelVersion}/"
-        azcopyLink = "https://aka.ms/downloadazcopy-v10-linux"
-        def status = sh (returnStatus: true, script: """#!/bin/bash
-        wget -q -O azcopy.tar.gz ${azcopyLink}
-        tar -xf azcopy.tar.gz
-	azcopy_linux_amd64_10.2.1/azcopy copy '${sourceDir}${sasKey}' . --recursive=true
-        tar -C ./${kernelVersion}/ -cvf ${kernelVersion}.tar.gz .
-        """)
-        if ( status != 0) {
-            throw new Exception("Failed to download ${kernelVersion}" )
-        }
-        //stash the kernel packages
-        stash includes: "${kernelVersion}.tar.gz", name: "Package-${kernelVersion}-stash"
     }
 }
 
@@ -242,7 +223,6 @@ node ("jenkins-meta-slave") {
                 . ${LIS_HOTFIX_CONFIGURE_TEST_FILE}
                 echo -n "\$LIS_HOTFIX_STORAGE_ACCOUNT" > LIS_HOTFIX_STORAGE_ACCOUNT.tmp
                 echo -n "\$LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT" > LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT.tmp
-		echo -n "\$LIS_HOTFIX_STORAGE_ACCOUNT_SAS_KEY" > LIS_HOTFIX_STORAGE_ACCOUNT_SAS_KEY.tmp
                 echo -n "\$LIS_BUILD_VM_USERNAME" > LIS_BUILD_VM_USERNAME.tmp
                 echo -n "\$LIS_BUILD_VM_PASSWORD" > LIS_BUILD_VM_PASSWORD.tmp
                 echo -n "\$LIS_REDMOND_SHARE_PATH" > LIS_REDMOND_SHARE_PATH.tmp
@@ -250,7 +230,6 @@ node ("jenkins-meta-slave") {
             }
             env.STORAGE_ACCOUNT_NAME = readFile 'LIS_HOTFIX_STORAGE_ACCOUNT.tmp'
             env.LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT = readFile 'LIS_HOTFIX_BOOTDIAG_STORAGE_ACCOUNT.tmp'
-	    env.LIS_HOTFIX_STORAGE_ACCOUNT_SAS_KEY = readFile 'LIS_HOTFIX_STORAGE_ACCOUNT_SAS_KEY.tmp'
             env.LIS_BUILD_VM_USERNAME = readFile 'LIS_BUILD_VM_USERNAME.tmp'
             env.LIS_BUILD_VM_PASSWORD = readFile 'LIS_BUILD_VM_PASSWORD.tmp'
             env.LIS_REDMOND_SHARE_PATH = readFile 'LIS_REDMOND_SHARE_PATH.tmp'
@@ -267,8 +246,6 @@ node ("jenkins-meta-slave") {
                 println "Input distro: ${distro} version ${version}"
                 def custom_kernel = GetErrataKernelLink("${version}")
                 CheckerrataLink("${custom_kernel}")
-		//Get the kernel packages from storage blob and stash it
-                DownloadStashKernelPackages("${env.STORAGE_ACCOUNT_NAME}","${env.LIS_HOTFIX_STORAGE_ACCOUNT_SAS_KEY}","${version}")
             }
             def body = ""
             body += "<br/>New non compatible errata kernel have been detected:<br/>"
@@ -383,8 +360,6 @@ node ("jenkins-meta-slave") {
                 def testDistro = HotfixTargetList[count].split('=')[0]
                 def version = HotfixTargetList[count].split('=')[1]
                 def errataKernel = GetErrataKernelLink("${version}")
-		unstash "Package-${version}-stash"
-                def errataKernel = "./${version}.tar.gz"
                 def DistroList = [ ArmImagesCentOS[testDistro], ArmImagesRHEL[testDistro] ]
                 def total_test_images = DistroList.size()
                 for (i = 0; i < total_test_images; i++) {
