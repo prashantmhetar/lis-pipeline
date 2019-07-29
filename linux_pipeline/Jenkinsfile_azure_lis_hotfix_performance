@@ -1,10 +1,10 @@
 #!/usr/bin/env groovy
 
 def TestLocation = TEST_LOCATION.replaceAll("[\n\r]", "");
-def PerfTestList = PERFORMANCE_TESTS.replaceAll("[\n\r]", "");
+def PerfTestList = PERFORMANCE_TESTS.replaceAll("[\n\r]", "").split(',');
 def stageTimeout = 90   // Set the timeout for each stage as 90 minutes
 
-def PerfTestCount = PerfTestList.size()
+def PerfTestCount = PerfTestList.length
 
 def RunPowershellCommand(psCmd) {
     bat "powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command \"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;$psCmd;EXIT \$global:LastExitCode\""
@@ -123,7 +123,7 @@ node ("azure") {
                                     Command += " -DeployVMPerEachTest 1"
                                     Command += " -ExitWithZero"
                                     Command += " -EnableTelemetry"
-                                    Command += " -TestIterations 3"
+                                    Command += " -TestIterations 1"
                                     Command += " -OsVHD '${LIS_VHD}'"
                                     Command += " -TestLocation '${TestLocation}'"
                                     println Command
