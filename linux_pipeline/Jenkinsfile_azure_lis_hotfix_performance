@@ -78,7 +78,7 @@ node ("azure") {
                                     Command += " -DeployVMPerEachTest 1"
                                     Command += " -ExitWithZero"
                                     Command += " -EnableTelemetry"
-                                    Command += " -TestIterations 3"
+                                    Command += " -TestIterations 1"
                                     Command += " -OsVHD '${LIS_VHD}'"
                                     Command += " -TestLocation '${TestLocation}'"
                                     println Command
