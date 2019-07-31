@@ -89,6 +89,8 @@ def CheckerrataLink(errataLink) {
     if ( status != 0) {
         throw new Exception("${errataLink} is unreachable.")
     }
+    CleanWorkspace()
+
 }
 
 def DownloadStashKernelPackages(storage, sasKey, azcopyLink, kernelVersion)
@@ -106,10 +108,7 @@ def DownloadStashKernelPackages(storage, sasKey, azcopyLink, kernelVersion)
         }
         //stash the kernel packages
         stash includes: "${kernelVersion}.tar.gz", name: "Package-${kernelVersion}-stash"
-        sh (returnStatus: true, script: """#!/bin/bash
-        rm -rf azcopy.tar.gz azcopy_linux_amd64*
-        rm -rf  ./${kernelVersion}  ${kernelVersion}.tar.gz
-        """)
+	CleanWorkspace()
     }
 }
 
