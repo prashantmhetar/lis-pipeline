@@ -105,7 +105,6 @@ stage ("${currentStage}") {
                 Command += " -TestLocation '${TEST_LOCATION}'"
                 Command += " -RGIdentifier  'RPMTEST${BUILD_ID}'"
                 Command += " -TestCategory 'Functional'"
-                Command += " -TestNames 'KVP-BASIC-CHECKS'"
                 Command += " -TestPriority '0'"
                 Command += " -StorageAccount 'ExistingStorage_Standard'"
                 Command += " -CustomTestParameters 'LIS_OLD_URL=${OLD_LIS_RPM_URL};LIS_CURRENT_URL=${NEW_LIS_RPM_URL}'"
